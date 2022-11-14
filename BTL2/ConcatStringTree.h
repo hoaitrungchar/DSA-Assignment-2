@@ -134,6 +134,8 @@ public:
     void delNodeAVL(int othersid) {
         
         NodeAVL* cur = root;
+        NodeAVL* precur = NULL;
+        int checkright = -1;
         NodeAVL* temp = NULL;
         if (cur == NULL) return;
         while (cur->id != othersid) {
@@ -141,48 +143,65 @@ public:
                 cur->heightleft = cur->heightleft - 1;
                 cur->updateheight();
                 if (cur->isnotbalance()) temp = cur;
+                precur = cur;
+                checkright = 0;
                 cur = cur->ptrleft;
             }
             else if (cur->id < othersid) {
                 cur->heightright = cur->heightright - 1;
                 cur->updateheight();
                 if (cur->isnotbalance()) temp = cur;
+                precur = cur;
                 cur = cur->ptrright;
+                checkright = 1;
             }
         }
         if (cur == NULL) return;
        if ((cur->ptrleft == NULL) || (cur->ptrright == NULL))
        {
-            NodeAVL* temp = NULL;
+            NodeAVL* temp1 = NULL;
             if (cur->ptrleft != NULL) {
-                temp = cur->ptrleft;
+                temp1 = cur->ptrleft;
+                cur->id = temp1->id;
+                cur->ptrleft = temp1->ptrleft;
+                cur->ptrright = temp1->ptrright;
+                delete temp1;
             }
             else {
-                temp = cur->ptrright;
+                temp1 = cur->ptrright;
+                if (temp1 != NULL) {
+                    cur->id = temp1->id;
+                    cur->ptrleft = temp1->ptrleft;
+                    cur->ptrright = temp1->ptrright;
+                    delete temp1;
+                }
+                else {
+                    if (precur == NULL) {
+                        root = NULL;
+                        delete cur;
+                    }
+                    else {
+                        if (checkright == 1) precur->ptrright = NULL;
+                        else precur->ptrleft = NULL;
+                        delete cur;
+                        
+                    }
+                }
             }
-            // No child case 
-            if (temp == NULL)
-            {
-                temp = root;
-                root = NULL;
-            }
-            else
-                *root = *temp;
-
-            delete temp;
         }
         else
         {
 
-            NodeAVL* temp = root->ptrleft;
+            NodeAVL* temp2 = root->ptrleft;
             NodeAVL* curtemp = root->ptrleft;
             while (curtemp != NULL)
             {
                 curtemp->heightright = curtemp->heightright - 1;
                 curtemp = curtemp->ptrright;
             }
-            root->id = temp->id;
-            delete temp;
+            root->id = temp2->id;
+            delete temp2;
+            temp2 = NULL;
         }
         if (temp != NULL) canbangAVL(temp);
         nodesize--;
@@ -230,6 +249,7 @@ public:
     };
 };
 static long long staticid = 0;
+static int xoahet = 0;
 class NodeBST {
 public:
     int leftlengthdata;
@@ -242,6 +262,7 @@ public:
     ParentsTree* AVLtree = new ParentsTree();
 public:
     NodeBST() {
+        xoahet++;
         leftlengthdata = 0;
         lengthdata = 0;
         ptrleft = NULL;
@@ -253,6 +274,7 @@ public:
         AVLtree->root->id = staticid;
     };
     NodeBST(string s) {
+        xoahet++;
         data = s;
         ptrleft = NULL;
         ptrright = NULL;
@@ -265,6 +287,7 @@ public:
         AVLtree->root->id = staticid;
     };
     NodeBST(const char* s) {
+        xoahet++;
         data = s;
         ptrleft = NULL;
         ptrright = NULL;
@@ -278,6 +301,7 @@ public:
     };
     NodeBST(NodeBST* other)
     {
+        xoahet++;
         this->data = other->data;
         this->lengthdata = other->lengthdata;
         this->leftlengthdata = other->leftlengthdata;
@@ -289,6 +313,7 @@ public:
         AVLtree->root->id = staticid;
     }
     ~NodeBST() {
+        xoahet--;
         if(AVLtree!=NULL)
         AVLtree->~ParentsTree();
         AVLtree = NULL;
@@ -694,13 +719,15 @@ public:
        
         void deleteAVL(NodeBST* node) {
             if (node == NULL) return;
+
             node->AVLtree->delNodeAVL(node->id);
             if (node->ptrleft != NULL) {
-                deleteAVL(node->ptrleft);
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
             }
             if (node->ptrright != NULL) {
-                deleteAVL(node->ptrright);
+                node->ptrright->AVLtree->delNodeAVL(node->id);
             }
+           
         }
         void deleteBST(NodeBST* node) {
             if (node == NULL) return;
@@ -714,16 +741,21 @@ public:
                     deleteBST(node->ptrright);
                 }
                 delete node;
+                node = NULL;
             }
             return;
         }
 
         ~ConcatStringTree() {
-            if (root != NULL)
+            if (root != NULL&&xoahet!=0)
             {
                 deleteAVL(root);
+
                 deleteBST(root);
+                if (root->AVLtree==NULL)
+                    root = NULL;
             }
+            
         };
     
 };
@@ -739,20 +771,208 @@ private:
     int initSize;
 
     friend class ReducedConcatStringTree;
+public:
+    HashConfig() {
+    };
+    int getsize() {
+        return this->initSize;
+    };
+    int getc1() {
+        return this->c1;
+    };
+    double getalpha() {
+        return this->alpha;
+    }
+    int getc2() {
+        return this->c2;
+    };
+    int getlambda() {
+        return this->lambda;
+    }
+    void operator =(const HashConfig& other)
+    {
+        this->p = other.p;
+        this->c1 = other.c1;
+        this->c2 = other.c2;
+        this->alpha = other.alpha;
+        this->lambda = other.lambda;
+        this->initSize = other.initSize;
+
+    }
+    int hashfunction(string s) {
+        int res = 0;
+        int luythua = 1;
+        for (int i = 0; i < s.length(); i++)
+        {
+            res = res + int(s[i]) * luythua;
+            res %= initSize;
+            luythua %= initSize;
+            luythua *= p;
+        }
+        return res;
+    }
 };
 
-class ReducedConcatStringTree /* */ {
-
+class LitStringHash {
 public:
-    class LitStringHash {
-    public:
-        LitStringHash(const HashConfig& hashConfig);
-        int getLastInsertedIndex() const;
-        string toString() const;
+    HashConfig hashconfig;
+    int sizehash;//size toidachua
+    int sizecur;//size dachua
+    int* hashpoint;//sonodechoden
+    int* status;//1cochua,0kochua,-1moixoa
+    string* hashtable;
+    int lastinserted;
+    int loadfactor;
+    
+public:
+    LitStringHash() {
+        sizehash = 0;
+        lastinserted = -1;
+    }
+    LitStringHash(const HashConfig& hashConfig) {
+        lastinserted = -1;
+        this->hashconfig = hashConfig;
+        sizehash = hashconfig.getsize();
+        status = new int[sizehash];
+        hashpoint = new int[sizehash];
+        hashtable = new string[sizehash];
+        for (int i = 0; i < sizehash; i++) {
+            status[i] = 0;
+            hashpoint[i] = 0;
+        }
     };
+    string* addressstring(string s) {
+        int x = find(s);
+        if (x!=-1)
+        {
+            hashpoint[x]++;
+            lastinserted = x;
+            return &hashtable[x];
+        }
+        else {
+            
+            if (sizecur >= sizehash)
+                reaheasing();
+            x = quadraticprobing(s, 1);
+            hashtable[x] = s;
+            status[x]=1;
+            hashpoint[x]++;
+            lastinserted = x;
+            return &hashtable[x];
+        }
+    }
+    int find(string s) {
+        int x = quadraticprobing(s, 0);
+        if (x == -1) return -1;
+        return x;
+    }
+    void reaheasing(){
+        if (loadfactor > hashconfig.getlambda()) {
+            int* hashpointnew;
+            int* statusnew;
+            string* hashtablenew;
+            int sizehashnew;
+            sizehashnew = int(hashconfig.getalpha() * sizehash);
+            hashpointnew = new int[sizehashnew];
+            hashtablenew = new string[sizehashnew];
+            statusnew = new int[sizehashnew];
+            for (int i = 0; i < sizehash; i++)
+            {
+                if (status[i] == 1) {
+                    lastinserted = i;
+                }
+                statusnew[i] = status[i];
+                hashtablenew[i] = hashtable[i];
+                hashpointnew[i] = hashpoint[i];
+            }
+            delete[] status; delete[] hashtable; delete[]  hashpoint;
+            status = statusnew;
+            hashtable = hashtablenew;
+            hashpoint = hashpointnew;
+            sizehash = sizehashnew;
+        }
+        return;
+    }
+    int quadraticprobing(string s,int them)
+    {
+        int c1 = hashconfig.getc1();
+        int c2 = hashconfig.getc2();
+        int hash = hashconfig.hashfunction(s);
+        int hashprop = hash; hashprop% sizehash;
+        int i = 0;
+        if (them == 1) {
+            while (i < this->sizehash)
+            {
+                hashprop = hash;
+                int x = (c1 * i);
+                int y = c2 * ((i * i) % sizehash);
+                hashprop = x % sizehash + y;
+                hashprop %= sizehash;
+                if (status[sizehash] != 1) {
+                    return i;
+                }
+                i++;
+            }
 
+            throw runtime_error("No possible slot");
+        }
+        else {
+            while (i < this->sizehash)
+            {
+                hashprop = hash;
+                int x = (c1 * i);
+                int y = c2 * ((i * i) % sizehash);
+                hashprop = x % sizehash + y;
+                hashprop %= sizehash;
+                if (status[sizehash] == 1&&hashtable[i]==s) {
+                    return i;
+                }
+                i++;
+            }
+            return -1;
+        }
+        
+    };
+    
+    int getLastInsertedIndex() const {
+        return this->lastinserted;
+    };
+    string toString() const {
+        string res = "LitStringHash[";
+        for (int i = 0; i < sizehash; i++)
+        {
+            string temp = "";
+            if (i != 0)temp += ";";
+            temp+="(";
+            if (hashpoint[i] == 1) {
+                temp += "litS=";
+                temp += '"';
+                temp += hashtable[i];
+                temp += '"';
+            }
+            temp += ")";
+            res += temp;
+        }
+        res += "]";
+        return res;
+    };
+    void deletestring(string s) {
+        int x = find(s);
+        
+        hashpoint[x]--;
+        if (hashpoint[x] == 0) {
+            status[x] = 0;
+            hashtable[x] = "";
+        }
+    }
+};
+class ReducedBSTnode {
+
+};
+class ReducedConcatStringTree /* */ {
 public:
-    static LitStringHash litStringHash;
+    ReducedConcatStringTree(const char* s, LitStringHash* litStringHash);
+    LitStringHash* litStringHash;
 };
 
 #endif // __CONCAT_STRING_TREE_H__
