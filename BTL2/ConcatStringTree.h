@@ -58,6 +58,10 @@ public:
         y->updateheight();
         x->heightright = y->height+1;
         x->updateheight();
+        if (x == this->root)
+        {
+            this->root = x;
+        }
         return x;
     }
     NodeAVL* leftRotate(NodeAVL* x)
@@ -67,29 +71,35 @@ public:
 
         y->ptrleft = x;
         x->ptrright = T2;
-
-        x->heightright = T2->height + 1;
+        if (T2 == NULL) {
+            x->heightright = 1;
+        }
+        else
+            x->heightright = T2->height + 1;
         x->updateheight();
         y->heightleft = x->height + 1;
         y->updateheight();
-        
+        if (x == this->root)
+        {
+            this->root = y;
+        }
         return y;
     }
     void canbangAVL(NodeAVL* node) {
-        if (node->heightleft - node->heightright > 1 && node->id < root->id) {
+        if (node->heightleft - node->heightright > 1 && node->id <= root->id) {//LOL
             rightRotate(node);
             return;
         }
-        else if (node->heightleft - node->heightright <-1 && node->id > root->id) {
+        else if (node->heightleft - node->heightright <-1 && node->id >= root->id) {//ROR
             leftRotate(node);
             return;
         }
-        else if (node->heightleft - node->heightright > 1 && node->id >root->id) {
+        else if (node->heightleft - node->heightright > 1 && node->id >root->id) {//ROL
             NodeAVL*temp=rightRotate(node);
             leftRotate(temp);
             return;
         }
-        else {
+        else {//LOR
             NodeAVL* temp = leftRotate(node);
             rightRotate(node);
             return;
@@ -216,7 +226,7 @@ public:
     string toStringPreOrderrec(NodeAVL* node) const {
         if (node == NULL) return "";
         string s = "";
-        if (node != root) s += ",";
+        if (node != root) s += ";";
         s += "(id=";
         int x = node->id;
         stringstream ss1; ss1 << x;
@@ -230,7 +240,7 @@ public:
     };
     string toStringPreOrder() const {
         string res = "";
-        res += '"'; res += "ParentsTree[";
+        res += "ParentsTree[";
         res += toStringPreOrderrec(this->root);
         res += "]";
         return res;
@@ -332,9 +342,6 @@ public:
     ConcatStringTree(const char* s) {
         root = new NodeBST(s);
         lengthstr = root->lengthdata;
-
-
-
     };
     void reset() {
         this->root = NULL;
@@ -395,11 +402,10 @@ public:
         return res;
     };
     string toStringPreOrder() const {
-        string res = ""; res += '"';
+        string res = ""; 
         res += "ConcatStringTree[";
         res += toStringPreOrderrecur(root);
         res += "]";
-        res += '"';
         return res;
     };
 
@@ -412,13 +418,12 @@ public:
         return res;
     };
     string toString() const {
-        string res = ""; res += '"';
+        string res = ""; 
         res += "ConcatStringTree[";
         res += '"';
         res += toStringrecur(root);
         res += '"';
         res += "]";
-        res += '"';
         return res;
     };
 
@@ -455,6 +460,7 @@ public:
                     curcopy->leftlengthdata = to - from;
                     curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                     curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                    curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                     curcopy->ptrright = NULL;
                     subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 1, 0);
                 }
@@ -464,15 +470,18 @@ public:
                     curcopy->ptrleft = NULL;
                     curcopy->ptrright = new NodeBST(curstart->ptrright);
                     curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                    curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
                     subStringrecur(curcopy->ptrright, curstart->ptrright, from - curstart->leftlengthdata, to - curstart->leftlengthdata, 0, 1, 0);
                 }
                 else {
                     curcopy->leftlengthdata = curstart->leftlengthdata - from;
                     curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                     curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                    curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
 
                     curcopy->ptrright = new NodeBST(curstart->ptrright);
                     curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                    curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
 
                     subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 0, 1);
                     subStringrecur(curcopy->ptrright, curstart->ptrright, from, to - curstart->leftlengthdata, 0, 0, 0);
@@ -497,6 +506,7 @@ public:
                         curcopy->leftlengthdata = to - from;
                         curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                         curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                         curcopy->ptrright = NULL;
                         subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 1, 0);
                     }
@@ -506,13 +516,16 @@ public:
                         curcopy->ptrleft = NULL;
                         curcopy->ptrright = new NodeBST(curstart->ptrright);
                         curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from - curstart->leftlengthdata, to - curstart->leftlengthdata, 0, 1, 0);
                     }
                     else {
                         curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                         curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                         curcopy->ptrright = new NodeBST(curstart->ptrright);
                         curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
 
                         subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 0, 1);
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from, to - curstart->leftlengthdata, 0, 0, 0);
@@ -530,12 +543,14 @@ public:
                         {
                             curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                             curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                            curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                             subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 2, 1);
                         }
                         if (curstart->ptrright != NULL)
                         {
                             curcopy->ptrright = new NodeBST(curstart->ptrright);
                             curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                            curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
                             subStringrecur(curcopy->ptrright, curstart->ptrright, from, to, 0, 2, 1);
                         }
                         return;
@@ -556,6 +571,7 @@ public:
                         curcopy->ptrleft = NULL;
                         curcopy->ptrright = new NodeBST(curstart->ptrright);
                         curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
 
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from - curstart->leftlengthdata, to, 0, 0, 1);
                     }
@@ -564,9 +580,13 @@ public:
                         curcopy->leftlengthdata = curstart->leftlengthdata - from;
                         curcopy->ptrleft = new NodeBST(curstart->ptrright);
                         curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
+
 
                         curcopy->ptrright = new NodeBST(curstart->ptrright);
                         curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                        curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
+
                         subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 0, 1);
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from, to, 0, 2, 1);
                     }
@@ -578,12 +598,14 @@ public:
                             {
                                 curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                                 curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                                curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                                 subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 2, 0);
                             }
                             if (curstart->ptrright != NULL)
                             {
                                 curcopy->ptrright = new NodeBST(curstart->ptrright);
                                 curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                                curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
                                 subStringrecur(curcopy->ptrright, curstart->ptrright, from, to, 0, 2, 0);
                             }
                             return;
@@ -604,6 +626,7 @@ public:
                             curcopy->leftlengthdata = to;
                             curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                             curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                            curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
                             curcopy->ptrright = NULL;
                             subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 0, 0);
                         }
@@ -611,8 +634,12 @@ public:
                             curcopy->chuadata = 0;
                             curcopy->ptrleft = new NodeBST(curstart->ptrright);
                             curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+                            curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
+
                             curcopy->ptrright = new NodeBST(curstart->ptrright);
                             curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+                            curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
+
                             subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 2, 0);
                             subStringrecur(curcopy->ptrright, curstart->ptrright, from, to - curstart->leftlengthdata, 0, 2, 0);
                         }
@@ -635,128 +662,134 @@ public:
         return res;
     };
 
-        void reverserecur(NodeBST * curcopy, NodeBST * curstart){
-            if (curstart == NULL) return;
-            if (curstart->chuadata == 1)
+    void reverserecur(NodeBST * curcopy, NodeBST * curstart){
+        if (curstart == NULL) return;
+        if (curstart->chuadata == 1)
+        {
+            string s = "";
+            int n = curstart->data.size();
+            for (int i = 0; i < n; i++)
             {
-                string s = "";
-                int n = curstart->data.size();
-                for (int i = 0; i < n; i++)
-                {
-                    s += curstart->data[n - 1 - i];
-                }
-                curcopy->data = s;
-                return;
+                s += curstart->data[n - 1 - i];
             }
-
-            curcopy->leftlengthdata = curstart->lengthdata - curstart->leftlengthdata;
-            if (curstart->ptrleft != NULL) {
-                curcopy->ptrright = new NodeBST(curstart->ptrleft);
-                curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
-                reverserecur(curcopy->ptrright, curstart->ptrleft);
-            }
-            if (curstart->ptrright != NULL) {
-                curcopy->ptrleft = new NodeBST(curstart->ptrright);
-                curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
-                reverserecur(curcopy->ptrleft, curstart->ptrright);
-            }
-        };
-        ConcatStringTree reverse() const {
-            static ConcatStringTree res; res.reset();
-            res.root = new NodeBST(this->root);
-            res.lengthstr = this->lengthstr;
-            res.root->lengthdata = this->root->lengthdata;
-            res.reverserecur(res.root, this->root);
-            return res;
-        };
-
-        int getParTreeSize(const string & query)const {
-
-            int n = query.size();
-            NodeBST* temp = this->root;
-            if (temp == NULL)
-            {
-                throw runtime_error("Invalid character of query");
-            }
-            for (int i = 0; i < n; i++) {
-                if (query[i] == 'l') {
-                    temp = temp->ptrleft;
-                }
-                else if (query[i] == 'r')
-                {
-                    temp = temp->ptrright;
-                }
-                if (temp == NULL)
-                {
-                    throw runtime_error("Invalid character of query");
-                }
-            }
-            return temp->AVLtree->nodesize;
-        };
-        string getParTreeStringPreOrder(const string & query) const {
-            int n = query.size();
-            NodeBST* temp = this->root;
-            if (temp == NULL)
-            {
-                throw runtime_error("Invalid character of query");
-            }
-            for (int i = 0; i < n; i++) {
-                if (query[i] == 'l') {
-                    temp = temp->ptrleft;
-                }
-                else if (query[i] == 'r')
-                {
-                    temp = temp->ptrright;
-                }
-                if (temp == NULL)
-                {
-                    throw runtime_error("Invalid character of query");
-                }
-            }
-            return temp->AVLtree->toStringPreOrder();
-
-        };
-       
-        void deleteAVL(NodeBST* node) {
-            if (node == NULL) return;
-
-            node->AVLtree->delNodeAVL(node->id);
-            if (node->ptrleft != NULL) {
-                node->ptrleft->AVLtree->delNodeAVL(node->id);
-            }
-            if (node->ptrright != NULL) {
-                node->ptrright->AVLtree->delNodeAVL(node->id);
-            }
-           
-        }
-        void deleteBST(NodeBST* node) {
-            if (node == NULL) return;
-
-            if (node->AVLtree->size() == 0)
-            {
-                if (node->ptrleft != NULL) {
-                    deleteBST(node->ptrleft);
-                }
-                if (node->ptrright != NULL) {
-                    deleteBST(node->ptrright);
-                }
-                delete node;
-                node = NULL;
-            }
+            curcopy->data = s;
             return;
         }
 
-        ~ConcatStringTree() {
-            if (root != NULL&&xoahet!=0)
-            {
-                deleteAVL(root);
+        curcopy->leftlengthdata = curstart->lengthdata - curstart->leftlengthdata;
+        if (curstart->ptrleft != NULL) {
+            curcopy->ptrright = new NodeBST(curstart->ptrleft);
+            curcopy->ptrright->AVLtree->addNodeAVL(curcopy->id);
+            curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//them vao de xoa Id cua chinh node do (xoareverse)
+            reverserecur(curcopy->ptrright, curstart->ptrleft);
+        }
+        if (curstart->ptrright != NULL) {
+            curcopy->ptrleft = new NodeBST(curstart->ptrright);
+            curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
+            curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//them vao de xoa Id cua chinh node do (xoareverse)
+            reverserecur(curcopy->ptrleft, curstart->ptrright);
+        }
+    };
+    ConcatStringTree reverse() const {
+        static ConcatStringTree res; res.reset();
+        res.root = new NodeBST(this->root);
+        res.lengthstr = this->lengthstr;
+        res.root->lengthdata = this->root->lengthdata;
+        res.reverserecur(res.root, this->root);
+        return res;
+    };
 
-                deleteBST(root);
-                if (root->AVLtree==NULL)
-                    root = NULL;
+    int getParTreeSize(const string & query)const {
+
+        int n = query.size();
+        NodeBST* temp = this->root;
+        if (temp == NULL)
+        {
+            throw runtime_error("Invalid character of query");
+        }
+        for (int i = 0; i < n; i++) {
+            if (query[i] == 'l') {
+                temp = temp->ptrleft;
             }
+            else if (query[i] == 'r')
+            {
+                temp = temp->ptrright;
+            }
+            if (temp == NULL)
+            {
+                throw runtime_error("Invalid character of query");
+            }
+        }
+        return temp->AVLtree->nodesize;
+    };
+    string getParTreeStringPreOrder(const string & query) const {
+        int n = query.size();
+        NodeBST* temp = this->root;
+        if (temp == NULL)
+        {
+            throw runtime_error("Invalid character of query");
+        }
+        for (int i = 0; i < n; i++) {
+            if (query[i] == 'l') {
+                temp = temp->ptrleft;
+            }
+            else if (query[i] == 'r')
+            {
+                temp = temp->ptrright;
+            }
+            if (temp == NULL)
+            {
+                throw runtime_error("Invalid character of query");
+            }
+        }
+        return temp->AVLtree->toStringPreOrder();
+
+    };
+    void deleteAVLchild(NodeBST* node) {
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                node->ptrright->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrright);
+            }
+        }
+    }
+    void deleteAVL(NodeBST* node) {
+        if (node == NULL) return;
+        node->AVLtree->delNodeAVL(node->id);
+        deleteAVLchild(node);
+    }
+    void deleteBST(NodeBST* node) {
+        if (node == NULL) return;
+
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                deleteBST(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                deleteBST(node->ptrright);
+            }
+            delete node;
+            node = NULL;
+        }
+        return;
+    }
+    ~ConcatStringTree() {
+        if (root != NULL && xoahet != 0)
+        {
+            deleteAVL(root);
+
+            deleteBST(root);
+            if (root->AVLtree==NULL)
+                root = NULL;
+        }
             
-        };
+    };
     
 };
 
@@ -771,19 +804,34 @@ private:
     int initSize;
 
     friend class ReducedConcatStringTree;
+    friend class LitStringHash;
 public:
     HashConfig() {
+        this->p = 0;
+        this->c1 = 0;
+        this->c2 = 0;
+        this->lambda = 0;
+        this->alpha = 0;
+        this->initSize = 0;
+    };
+    HashConfig(int otherp, double otherc1, double otherc2, double otherlambda, double otheralpha,int otherinitSize) {
+        this->p = otherp;
+        this->c1 = otherc1;
+        this->c2 = otherc2;
+        this->lambda = otherlambda;
+        this->alpha = otheralpha;
+        this->initSize = otherinitSize;
     };
     int getsize() {
         return this->initSize;
     };
-    int getc1() {
+    double getc1() {
         return this->c1;
     };
     double getalpha() {
         return this->alpha;
     }
-    int getc2() {
+    double getc2() {
         return this->c2;
     };
     int getlambda() {
@@ -878,9 +926,6 @@ public:
             statusnew = new int[sizehashnew];
             for (int i = 0; i < sizehash; i++)
             {
-                if (status[i] == 1) {
-                    lastinserted = i;
-                }
                 statusnew[i] = status[i];
                 hashtablenew[i] = hashtable[i];
                 hashpointnew[i] = hashpoint[i];
@@ -895,21 +940,20 @@ public:
     }
     int quadraticprobing(string s,int them)
     {
-        int c1 = hashconfig.getc1();
-        int c2 = hashconfig.getc2();
+        double c1 = hashconfig.getc1();
+        double c2 = hashconfig.getc2();
         int hash = hashconfig.hashfunction(s);
-        int hashprop = hash; hashprop% sizehash;
+        int hashprop = hash; hashprop%=sizehash;
         int i = 0;
         if (them == 1) {
             while (i < this->sizehash)
             {
                 hashprop = hash;
-                int x = (c1 * i);
-                int y = c2 * ((i * i) % sizehash);
-                hashprop = x % sizehash + y;
-                hashprop %= sizehash;
-                if (status[sizehash] != 1) {
-                    return i;
+                int x = (c1 * i)+c2 * (i * i);
+                x %= sizehash;
+                hashprop =(hashprop+ x) % sizehash ;
+                if (status[hashprop] != 1) {
+                    return hashprop;
                 }
                 i++;
             }
@@ -920,12 +964,11 @@ public:
             while (i < this->sizehash)
             {
                 hashprop = hash;
-                int x = (c1 * i);
-                int y = c2 * ((i * i) % sizehash);
-                hashprop = x % sizehash + y;
-                hashprop %= sizehash;
-                if (status[sizehash] == 1&&hashtable[i]==s) {
-                    return i;
+                int x = (c1 * i) + c2 * (i * i);
+                x %= sizehash;
+                hashprop = (hashprop + x) % sizehash;
+                if (status[hashprop] == 1&&hashtable[hashprop]==s) {
+                    return hashprop;
                 }
                 i++;
             }
@@ -944,7 +987,7 @@ public:
             string temp = "";
             if (i != 0)temp += ";";
             temp+="(";
-            if (hashpoint[i] == 1) {
+            if (status[i] == 1) {
                 temp += "litS=";
                 temp += '"';
                 temp += hashtable[i];
@@ -958,21 +1001,261 @@ public:
     };
     void deletestring(string s) {
         int x = find(s);
-        
-        hashpoint[x]--;
-        if (hashpoint[x] == 0) {
-            status[x] = 0;
-            hashtable[x] = "";
+        if (x != -1)
+        {
+            hashpoint[x]--;
+            if (hashpoint[x] == 0) {
+                status[x] = 0;
+                hashtable[x] = "";
+            }
         }
     }
 };
-class ReducedBSTnode {
 
-};
-class ReducedConcatStringTree /* */ {
+class ReducedNode {
 public:
-    ReducedConcatStringTree(const char* s, LitStringHash* litStringHash);
+    string* data;
+    int leftlengthdata;
+    int lengthdata;
+    ReducedNode* ptrleft;
+    ReducedNode* ptrright;
+    int chuadata = 0;
+    long long id = 0;
+    ParentsTree* AVLtree = new ParentsTree();
+public:
+    ReducedNode() {
+        data = NULL;
+        leftlengthdata = lengthdata = 0;
+        ptrleft = ptrright = NULL;
+        chuadata = 0;
+        AVLtree->root->id =staticid ;
+        staticid++;
+        xoahet++;
+        if (staticid > 10000000) throw overflow_error("Id is overflow!");
+        id = staticid;
+        AVLtree->root->id = staticid;
+    }
+
+    ReducedNode(string s) {
+        data = NULL;
+        leftlengthdata =  0;
+        chuadata = 1;
+        ptrleft = ptrright = NULL;
+        lengthdata = s.length();
+        AVLtree->root->id = staticid;
+        staticid++;
+        xoahet++;
+        if (staticid > 10000000) throw overflow_error("Id is overflow!");
+        id = staticid;
+        AVLtree->root->id = staticid;
+    }
+    ~ReducedNode() {
+        xoahet--;
+        if (AVLtree != NULL)
+            AVLtree->~ParentsTree();
+        AVLtree = NULL;
+    }
+};
+class ReducedConcatStringTree  {
+public:
+    ReducedNode* root;
     LitStringHash* litStringHash;
+    int lengthstr;
+public:
+    ReducedConcatStringTree() {
+        root = NULL;
+        litStringHash = NULL;
+        lengthstr = 0;
+    }
+    ReducedConcatStringTree(const char* s, LitStringHash* litStringHash) {
+        this->litStringHash = litStringHash;
+        string temp = s;
+        root = new ReducedNode(temp);
+        root->data = litStringHash->addressstring(temp);
+        lengthstr = temp.length();
+    };
+    int length() const {
+        return lengthstr;
+    };
+    char getrecur(int index, ReducedNode* cur) const{
+        if (cur->chuadata == 1) return cur->data[0][index];
+        if (index < cur->leftlengthdata) return getrecur(index, cur->ptrleft);
+        return getrecur(index, cur->ptrright);
+    }
+    char get(int index) const {
+        if (index<0 || index>lengthstr - 1) throw out_of_range("Index of string is invalid!");
+        return getrecur(index, root);
+    };
+    int indexOfrecur(char c, ReducedNode* cur) const {
+        if (cur->chuadata == 1) {
+            for (int i = 0; i < cur->data->length(); i++)
+            {
+                if (cur->data[0][i] == c) return i;
+            }
+            return -1;
+        }
+        int x, y; x = y = -1;
+        if (cur->ptrleft != NULL) x = indexOfrecur(c, cur->ptrleft);
+        if (cur->ptrright != NULL) y = indexOfrecur(c, cur->ptrright);
+        if (x == -1 && y == -1) return -1;
+        else if (x != -1) return x;
+        else return y;
+    }
+    int indexOf(char c) const {
+        return indexOfrecur(c, root);
+    };
+    void reset() {
+        root = NULL;
+        litStringHash = NULL;
+        lengthstr = 0;
+    }
+    string toStringPreOrderrecur(ReducedNode*cur) const {
+        string res = "";
+        if (cur != root)res += ";";
+        res += "(";
+        res += "LL=";
+        int x = cur->leftlengthdata;
+        int y = cur->lengthdata;
+        stringstream ss1; ss1 << x;
+        stringstream ss2; ss2 << y;
+        string tmp1, tmp2; ss1 >> tmp1; ss2 >> tmp2;
+        res += tmp1;
+        res += ",L=";
+        res += tmp2;
+        res += ",";
+        if (cur->chuadata == 0) res += "<NULL>)";
+        else res += '"' + *(cur->data) + '"' + ")";
+        if (cur->ptrleft != NULL) res += toStringPreOrderrecur(cur->ptrleft);
+        if (cur->ptrright != NULL)res += toStringPreOrderrecur(cur->ptrright);
+        return res;
+    };
+    string toStringPreOrder()const {
+        string res = ""; res += '"';
+        res += "ConcatStringTree[";
+        res += toStringPreOrderrecur(root);
+        res += "]";
+        res += '"';
+        return res;
+    };
+    string toStringrecur(ReducedNode* cur) const {
+        string res = "";
+        if (cur->ptrleft != NULL) res += toStringrecur(cur->ptrleft);
+        if (cur->ptrright != NULL) res += toStringrecur(cur->ptrright);
+        if (cur->chuadata == 1) res += *(cur->data);
+        return res;
+    };
+    string toString()const {
+        string res = ""; 
+        res += "ConcatStringTree[";
+        res += '"';
+        res += toStringrecur(root);
+        res += '"';
+        res += "]";
+        return res;
+    };
+    ReducedConcatStringTree concat(const ReducedConcatStringTree& otherS)const {
+        static ReducedConcatStringTree res; res.reset();
+        res.root = new ReducedNode();
+        res.lengthstr = this->lengthstr + otherS.lengthstr;
+        res.root->ptrleft = this->root;
+        res.root->ptrright = otherS.root;
+        this->root->AVLtree->addNodeAVL(res.root->id);
+        otherS.root->AVLtree->addNodeAVL(res.root->id);
+        res.root->chuadata = 0;
+        res.root->lengthdata = this->lengthstr + otherS.lengthstr;
+        res.root->leftlengthdata = this->lengthstr;
+        return res;
+    };
+    void deleteAVLchild(ReducedNode* node) {
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                node->ptrright->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrright);
+            }
+        }
+    }
+    void deleteAVL(ReducedNode* node) {
+        if (node == NULL) return;
+        node->AVLtree->delNodeAVL(node->id);
+        deleteAVLchild(node);
+    }
+    void  deleteReducedNode(ReducedNode* node) {
+        if (node == NULL) return;
+
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                deleteReducedNode(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                deleteReducedNode(node->ptrright);
+            }
+            delete node;
+            node = NULL;
+        }
+        return;
+    }
+    int getParTreeSize(const string& query)const {
+
+        int n = query.size();
+        ReducedNode* temp = this->root;
+        if (temp == NULL)
+        {
+            throw runtime_error("Invalid character of query");
+        }
+        for (int i = 0; i < n; i++) {
+            if (query[i] == 'l') {
+                temp = temp->ptrleft;
+            }
+            else if (query[i] == 'r')
+            {
+                temp = temp->ptrright;
+            }
+            if (temp == NULL)
+            {
+                throw runtime_error("Invalid character of query");
+            }
+        }
+        return temp->AVLtree->nodesize;
+    };
+    string getParTreeStringPreOrder(const string& query) const {
+        int n = query.size();
+        ReducedNode* temp = this->root;
+        if (temp == NULL)
+        {
+            throw runtime_error("Invalid character of query");
+        }
+        for (int i = 0; i < n; i++) {
+            if (query[i] == 'l') {
+                temp = temp->ptrleft;
+            }
+            else if (query[i] == 'r')
+            {
+                temp = temp->ptrright;
+            }
+            if (temp == NULL)
+            {
+                throw runtime_error("Invalid character of query");
+            }
+        }
+        return temp->AVLtree->toStringPreOrder();
+
+    };
+    ~ReducedConcatStringTree() {
+        if (root != NULL && xoahet != 0)
+        {
+            deleteAVL(root);
+
+            deleteReducedNode(root);
+            if (root->AVLtree == NULL)
+                root = NULL;
+        }
+    }
 };
 
 #endif // __CONCAT_STRING_TREE_H__
