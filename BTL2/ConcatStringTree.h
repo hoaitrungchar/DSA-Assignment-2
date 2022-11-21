@@ -165,6 +165,7 @@ public:
                 cur = cur->ptrright;
                 checkright = 1;
             }
+            if (cur == NULL) break;
         }
         if (cur == NULL) return;
        if ((cur->ptrleft == NULL) || (cur->ptrright == NULL))
@@ -325,7 +326,7 @@ public:
     ~NodeBST() {
         xoahet--;
         if(AVLtree!=NULL)
-        AVLtree->~ParentsTree();
+        delete AVLtree;
         AVLtree = NULL;
     };
 };
@@ -745,7 +746,7 @@ public:
         return temp->AVLtree->toStringPreOrder();
 
     };
-    void deleteAVLchild(NodeBST* node) {
+    /*void deleteAVLchild(NodeBST* node) {
         if (node->AVLtree->size() == 0)
         {
             if (node->ptrleft != NULL) {
@@ -785,10 +786,36 @@ public:
             deleteAVL(root);
 
             deleteBST(root);
-            if (root->AVLtree==NULL)
-                root = NULL;
+            //if (root->AVLtree==NULL)
+                //root = NULL;
         }
             
+    };*/
+    void checkandelete(NodeBST* node) {
+        if (node == NULL) return;
+            node->AVLtree->delNodeAVL(node->id);
+        if (node->AVLtree->size() == 0) {
+            if (node->ptrleft != NULL) {
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
+                checkandelete(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                node->ptrright->AVLtree->delNodeAVL(node->id);
+                checkandelete(node->ptrright);
+            }
+            delete node;
+            node = NULL;
+        }
+        return;
+    }
+    ~ConcatStringTree() {
+        if (root != NULL && xoahet != 0)
+        {
+            checkandelete(root);
+            //if (root->AVLtree==NULL)
+                //root = NULL;
+        }
+
     };
     
 };
@@ -1010,6 +1037,11 @@ public:
             }
         }
     }
+    ~LitStringHash() {
+        delete[] hashpoint;
+        delete[] hashtable;
+        delete[] status;
+    }
 };
 
 class ReducedNode {
@@ -1028,9 +1060,8 @@ public:
         leftlengthdata = lengthdata = 0;
         ptrleft = ptrright = NULL;
         chuadata = 0;
-        AVLtree->root->id =staticid ;
-        staticid++;
         xoahet++;
+        staticid++;
         if (staticid > 10000000) throw overflow_error("Id is overflow!");
         id = staticid;
         AVLtree->root->id = staticid;
@@ -1042,9 +1073,8 @@ public:
         chuadata = 1;
         ptrleft = ptrright = NULL;
         lengthdata = s.length();
-        AVLtree->root->id = staticid;
-        staticid++;
         xoahet++;
+        staticid++;
         if (staticid > 10000000) throw overflow_error("Id is overflow!");
         id = staticid;
         AVLtree->root->id = staticid;
@@ -1052,8 +1082,9 @@ public:
     ~ReducedNode() {
         xoahet--;
         if (AVLtree != NULL)
-            AVLtree->~ParentsTree();
+            delete AVLtree;
         AVLtree = NULL;
+        //AVLtree = NULL;
     }
 };
 class ReducedConcatStringTree  {
@@ -1166,40 +1197,6 @@ public:
         res.root->leftlengthdata = this->lengthstr;
         return res;
     };
-    void deleteAVLchild(ReducedNode* node) {
-        if (node->AVLtree->size() == 0)
-        {
-            if (node->ptrleft != NULL) {
-                node->ptrleft->AVLtree->delNodeAVL(node->id);
-                deleteAVLchild(node->ptrleft);
-            }
-            if (node->ptrright != NULL) {
-                node->ptrright->AVLtree->delNodeAVL(node->id);
-                deleteAVLchild(node->ptrright);
-            }
-        }
-    }
-    void deleteAVL(ReducedNode* node) {
-        if (node == NULL) return;
-        node->AVLtree->delNodeAVL(node->id);
-        deleteAVLchild(node);
-    }
-    void  deleteReducedNode(ReducedNode* node) {
-        if (node == NULL) return;
-
-        if (node->AVLtree->size() == 0)
-        {
-            if (node->ptrleft != NULL) {
-                deleteReducedNode(node->ptrleft);
-            }
-            if (node->ptrright != NULL) {
-                deleteReducedNode(node->ptrright);
-            }
-            delete node;
-            node = NULL;
-        }
-        return;
-    }
     int getParTreeSize(const string& query)const {
 
         int n = query.size();
@@ -1246,16 +1243,77 @@ public:
         return temp->AVLtree->toStringPreOrder();
 
     };
-    ~ReducedConcatStringTree() {
+   /* void deleteAVLchild(ReducedNode* node) {
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                node->ptrright->AVLtree->delNodeAVL(node->id);
+                deleteAVLchild(node->ptrright);
+            }
+        }
+    }
+    void deleteAVL(ReducedNode* node) {
+        if (node == NULL) return;
+        node->AVLtree->delNodeAVL(node->id);
+        deleteAVLchild(node);
+    }
+    void  deleteReducedNode(ReducedNode* node) {
+        if (node == NULL) return;
+        if (node->AVLtree->size() == 0)
+        {
+            if (node->ptrleft != NULL) {
+                deleteReducedNode(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                deleteReducedNode(node->ptrright);
+            }
+            delete node;
+            //node=NULL;
+        }
+        return;
+    }*/
+   
+    /*~ReducedConcatStringTree() {
         if (root != NULL && xoahet != 0)
         {
             deleteAVL(root);
 
             deleteReducedNode(root);
-            if (root->AVLtree == NULL)
-                root = NULL;
+            //if (root->AVLtree == NULL)
+               // root = NULL;
         }
+    }*/
+    void checkandelete(ReducedNode* node) {
+        if (node == NULL) return;
+        node->AVLtree->delNodeAVL(node->id);
+        if (node->AVLtree->size() == 0) {
+            if (node->ptrleft != NULL) {
+                node->ptrleft->AVLtree->delNodeAVL(node->id);
+                checkandelete(node->ptrleft);
+            }
+            if (node->ptrright != NULL) {
+                node->ptrright->AVLtree->delNodeAVL(node->id);
+                checkandelete(node->ptrright);
+            }
+            litStringHash->deletestring(*(node->data));
+            delete node;
+            node = NULL;
+        }
+        return;
     }
+    ~ReducedConcatStringTree() {
+        if (root != NULL && xoahet != 0)
+        {
+            checkandelete(root);
+            //if (root->AVLtree==NULL)
+                //root = NULL;
+        }
+
+    };
 };
 
 #endif // __CONCAT_STRING_TREE_H__
