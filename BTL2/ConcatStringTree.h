@@ -3,6 +3,7 @@
 
 #include "main.h"
 
+static long long staticid = 0;
 class NodeAVL {
 public:
     NodeAVL* ptrleft;
@@ -55,8 +56,11 @@ public:
 
         x->ptrright = y;
         y->ptrleft = T2;
-        
-        y->heightleft =1+T2->height;
+        if (T2 == NULL) {
+            y->heightleft = 0;
+        }
+        else
+            y->heightleft =1+T2->height;
         y->updateheight();
         x->heightright = y->height+1;
         x->updateheight();
@@ -272,9 +276,19 @@ public:
             cur->id = curtemp->id;
             delete curtemp;
             curtemp = NULL;
-            precurtemp->ptrright = NULL;
-            cur->heightleft = cur->ptrleft->heightleft + 1;
-            cur->updateheight();
+            if (precurtemp == cur) {
+                cur->ptrleft = NULL;
+                cur->heightleft = 0;
+                cur->updateheight();
+                if (cur->isnotbalance()) {
+                    temp = cur;
+                }
+            }
+            else {
+                precurtemp->ptrright = NULL;
+                cur->heightleft = cur->ptrleft->heightleft + 1;
+            }
+            
         }
         if (temp != NULL) canbangAVL(temp,pretemp);
         nodesize--;
@@ -321,7 +335,6 @@ public:
         nodesize = 0;
     };
 };
-static long long staticid = 0;
 static int xoahet = 0;
 class NodeBST {
 public:
@@ -403,6 +416,7 @@ public:
         lengthstr = 0;
     }
     ConcatStringTree(const char* s) {
+        if (staticid >= 10000000) throw overflow_error("Id is overflow!");
         root = new NodeBST(s);
         lengthstr = root->lengthdata;
     };
@@ -491,6 +505,7 @@ public:
     };
 
     ConcatStringTree concat(const ConcatStringTree& otherS) const {
+        if (staticid >= 10000000) throw overflow_error("Id is overflow!");
         static ConcatStringTree res; res.reset();
         res.root = new NodeBST();
         res.lengthstr = this->lengthstr + otherS.lengthstr;
@@ -503,7 +518,28 @@ public:
         res.root->leftlengthdata = this->lengthstr;
         return res;
     };
-
+    long long countnodesubstring(NodeBST* node, int from, int to,int lengthchuoitrai) {
+        if (node == NULL) return 0;
+        if(from>=lengthchuoitrai+node->lengthdata) return 0;
+        if(to<=lengthchuoitrai) return 0;
+        int x, y; x = y = 0;
+        if (node->chuadata == 1) return 1;
+        if (node->ptrleft != NULL) x=countnodesubstring(node->ptrleft,from,to,lengthchuoitrai);
+        if (node->ptrright != NULL) y=countnodesubstring(node->ptrright,from,to, lengthchuoitrai+node->leftlengthdata);
+        return 1 + x + y;
+    }
+    long long countnode(NodeBST* node) {
+        if (node == NULL) return 0;
+        if (node->chuadata == 1) return 1;
+        int x, y; x = y = 0;
+        if (node->ptrleft != NULL) {
+            x = countnode(node->ptrleft);
+        }
+        if (node->ptrright != NULL) {
+            y = countnode(node->ptrright);
+        }
+        return 1+ x + y;
+    }
     void subStringrecur(NodeBST* curcopy, NodeBST* curstart, int from, int to, int isroot, int cungphia, int huongtrai) {//cungphia=2=>lay het cac node o giua
         if (curstart == NULL) return;
         if (isroot == 1)
@@ -527,7 +563,7 @@ public:
                     curcopy->ptrright = NULL;
                     subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 1, 0);
                 }
-                else if (from > curstart->leftlengthdata)
+                else if (from >= curstart->leftlengthdata)
                 {
                     curcopy->leftlengthdata = 0;
                     curcopy->ptrleft = NULL;
@@ -573,7 +609,7 @@ public:
                         curcopy->ptrright = NULL;
                         subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 1, 0);
                     }
-                    else if (from > curstart->leftlengthdata)
+                    else if (from >= curstart->leftlengthdata)
                     {
                         curcopy->leftlengthdata = 0;
                         curcopy->ptrleft = NULL;
@@ -583,6 +619,7 @@ public:
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from - curstart->leftlengthdata, to - curstart->leftlengthdata, 0, 1, 0);
                     }
                     else {
+                        curcopy->leftlengthdata = curstart->leftlengthdata - from;
                         curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                         curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
                         curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
@@ -599,7 +636,6 @@ public:
             else {
                 if (huongtrai == 1)
                 {
-
                     if (cungphia == 2)//layhet
                     {
                         if (curstart->ptrleft != NULL)
@@ -627,7 +663,7 @@ public:
                         curcopy->chuadata = 1;
                         return;
                     }
-                    if (from > curstart->leftlengthdata)
+                    if (from >= curstart->leftlengthdata)
                     {
                         curcopy->chuadata = 0;
                         curcopy->leftlengthdata = 0;
@@ -641,7 +677,7 @@ public:
                     else {
                         curcopy->chuadata = 0;
                         curcopy->leftlengthdata = curstart->leftlengthdata - from;
-                        curcopy->ptrleft = new NodeBST(curstart->ptrright);
+                        curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                         curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
                         curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
 
@@ -653,7 +689,7 @@ public:
                         subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 0, 1);
                         subStringrecur(curcopy->ptrright, curstart->ptrright, from, to, 0, 2, 1);
                     }
-                    }
+                }
                     else {
                         if (cungphia == 2)//layhet
                         {
@@ -683,7 +719,7 @@ public:
                             curcopy->chuadata = 1;
                             return;
                         }
-                        if (to <= curstart->leftlengthdata + 1)
+                        if (to <= curstart->leftlengthdata )//23/11sua
                         {
                             curcopy->chuadata = 0;
                             curcopy->leftlengthdata = to;
@@ -695,7 +731,7 @@ public:
                         }
                         else {
                             curcopy->chuadata = 0;
-                            curcopy->ptrleft = new NodeBST(curstart->ptrright);
+                            curcopy->ptrleft = new NodeBST(curstart->ptrleft);
                             curcopy->ptrleft->AVLtree->addNodeAVL(curcopy->id);
                             curcopy->ptrleft->AVLtree->delNodeAVL(curcopy->ptrleft->id);//xoa Id cua chinh node do (xoasubstring)
 
@@ -704,7 +740,7 @@ public:
                             curcopy->ptrright->AVLtree->delNodeAVL(curcopy->ptrright->id);//xoa Id cua chinh node do (xoasubstring)
 
                             subStringrecur(curcopy->ptrleft, curstart->ptrleft, from, to, 0, 2, 0);
-                            subStringrecur(curcopy->ptrright, curstart->ptrright, from, to - curstart->leftlengthdata, 0, 2, 0);
+                            subStringrecur(curcopy->ptrright, curstart->ptrright, from, to - curstart->leftlengthdata, 0, 0, 0);
                         }
                     }
                 }
@@ -854,8 +890,7 @@ public:
             
     };*/
     void checkandelete(NodeBST* node) {
-        if (node == NULL) return;
-            node->AVLtree->delNodeAVL(node->id);
+        
         if (node->AVLtree->size() == 0) {
             if (node->ptrleft != NULL) {
                 node->ptrleft->AVLtree->delNodeAVL(node->id);
@@ -873,6 +908,8 @@ public:
     ~ConcatStringTree() {
         if (root != NULL && xoahet != 0)
         {
+            if (root == NULL) return;
+                root->AVLtree->delNodeAVL(root->id);
             checkandelete(root);
             //if (root->AVLtree==NULL)
                 //root = NULL;
@@ -914,6 +951,9 @@ public:
     int getsize() {
         return this->initSize;
     };
+    int getp() {
+        return this->p;
+    }
     double getc1() {
         return this->c1;
     };
@@ -936,18 +976,7 @@ public:
         this->initSize = other.initSize;
 
     }
-    int hashfunction(string s) {
-        int res = 0;
-        int luythua = 1;
-        for (int i = 0; i < s.length(); i++)
-        {
-            res = res + int(s[i]) * luythua;
-            res %= initSize;
-            luythua %= initSize;
-            luythua *= p;
-        }
-        return res;
-    }
+    
 };
 
 class LitStringHash {
@@ -957,7 +986,7 @@ public:
     int sizecur;//size dachua
     int* hashpoint;//sonodechoden
     int* status;//1cochua,0kochua,-1moixoa
-    string* hashtable;
+    string** hashtable;
     int lastinserted;
     int loadfactor;
     int existlitstringhash;
@@ -966,43 +995,70 @@ public:
         sizehash = 0;
         lastinserted = -1;
         existlitstringhash = 1;
+        sizecur = 0;
     }
     LitStringHash(const HashConfig& hashConfig) {
+        sizecur = 0;
         existlitstringhash = 1;
         lastinserted = -1;
         this->hashconfig = hashConfig;
         sizehash = hashconfig.getsize();
         status = new int[sizehash];
         hashpoint = new int[sizehash];
-        hashtable = new string[sizehash];
+        hashtable = new string*[sizehash];
         loadfactor = hashconfig.getlambda();
         for (int i = 0; i < sizehash; i++) {
             status[i] = 0;
             hashpoint[i] = 0;
         }
     };
-    int addressstring(string s) {
+    int hashfunction(string s) {
+        int res = 0;
+        int luythua = 1;
+        int p = hashconfig.getp();
+        for (int i = 0; i < s.length(); i++)
+        {
+            res = res + int(s[i]) * luythua;
+            res %= sizehash;
+            luythua %= sizehash;
+            luythua *= p;
+        }
+        return res;
+    }
+    string* addressstringrehash(string s,string*temp,int hashpointtemp) {
+        int x = 0;
+        x = quadraticprobing(s, 1);
+        hashtable[x] = temp;
+        status[x] = 1;
+        sizecur++;
+        hashpoint[x] = hashpointtemp;
+        return hashtable[x];
+    }
+    string* addressstring(string s) {
         int x = find(s);
         if (x!=-1)
         {
             hashpoint[x]++;
-            lastinserted = x;
-            return x;
+            
+            return hashtable[x];
         }
         else {
             x = quadraticprobing(s, 1);
-            hashtable[x] = s;
+            hashtable[x] = new string(s);
             status[x]=1;
             sizecur++;
             hashpoint[x]++;
-            reaheasing();
-            return x;
+            reaheasing(s);
+            lastinserted = find(s);
+            return hashtable[lastinserted];
         }
     }
     void allocate() {
+        sizehash = hashconfig.initSize;
+        sizecur = 0;
         status = new int[sizehash];
         hashpoint = new int[sizehash];
-        hashtable = new string[sizehash];
+        hashtable = new string*[sizehash];
         for (int i = 0; i < sizehash; i++) {
             status[i] = 0;
             hashpoint[i] = 0;
@@ -1017,28 +1073,46 @@ public:
         if (x == -1) return -1;
         return x;
     }
-    void reaheasing(){
+    void reaheasing(string s){
         double y = (sizecur * 1.0) / (sizehash * 1.0);
         if (y > hashconfig.getlambda()) {
             int* hashpointnew;
             int* statusnew;
-            string* hashtablenew;
+            string** hashtablenew;
             int sizehashnew;
             sizehashnew = int(hashconfig.getalpha() * sizehash);
             hashpointnew = new int[sizehashnew];
-            hashtablenew = new string[sizehashnew];
+            hashtablenew = new string*[sizehashnew];
             statusnew = new int[sizehashnew];
-            for (int i = 0; i < sizehash; i++)
+            for (int i = 0; i < sizehashnew; i++)
             {
-                statusnew[i] = status[i];
-                hashtablenew[i] = hashtable[i];
-                hashpointnew[i] = hashpoint[i];
+                hashpointnew[i] = 0;
+               statusnew[i] = 0;
             }
-            delete[] status; delete[] hashtable; delete[]  hashpoint;
+
+            int* hashpointtemp=hashpoint;
+            int* statustemp=status;
+            string** hashtabletemp=hashtable;
             status = statusnew;
             hashtable = hashtablenew;
             hashpoint = hashpointnew;
+            sizecur = 0;
+            int temp = sizehash;
             sizehash = sizehashnew;
+            for (int i = 0; i <temp; i++) {
+                if (statustemp[i] == 1)
+                {
+                    addressstringrehash(*(hashtabletemp[i]),hashtabletemp[i],hashpointtemp[i]);
+                }
+            }
+            /*for (int i = 0; i < temp; i++) {
+                if (statustemp[i] == 1)
+                {
+                   delete hashtabletemp[i];
+                }
+            }*/
+            delete[] statustemp; delete[] hashtabletemp; delete[]  hashpointtemp;
+            
         }
         return;
     }
@@ -1046,7 +1120,7 @@ public:
     {
         double c1 = hashconfig.getc1();
         double c2 = hashconfig.getc2();
-        int hash = hashconfig.hashfunction(s);
+        int hash = hashfunction(s);
         int hashprop = hash; hashprop%=sizehash;
         int i = 0;
         if (them == 1) {
@@ -1071,7 +1145,7 @@ public:
                 int x = (c1 * i) + c2 * (i * i);
                 x %= sizehash;
                 hashprop = (hashprop + x) % sizehash;
-                if (status[hashprop] == 1&&hashtable[hashprop]==s) {
+                if (status[hashprop] == 1&&*(hashtable[hashprop])==s) {
                     return hashprop;
                 }
                 i++;
@@ -1094,7 +1168,7 @@ public:
                 if (status[i] == 1) {
                     temp += "litS=";
                     temp += '"';
-                    temp += hashtable[i];
+                    temp += *(hashtable[i]);
                     temp += '"';
                 }
                 temp += ")";
@@ -1110,18 +1184,21 @@ public:
             delete[] hashtable;
             delete[] status;
             existlitstringhash = 0;
+            sizecur = 0;
             lastinserted = -1;
         }
         
     }
     void deletestring(string s) {
+        if (existlitstringhash == 0) return;
         int x = find(s);
         if (x != -1)
         {
             hashpoint[x]--;
             if (hashpoint[x] == 0) {
                 status[x] = 0;
-                hashtable[x] = "";
+                delete hashtable[x];
+                hashtable[x] = NULL;
                 sizecur--;
             }
         }
@@ -1130,6 +1207,10 @@ public:
     ~LitStringHash() {
         if (existlitstringhash == 1)
         {
+            for (int i = 0; i < sizehash; i++) {
+                if (status[i] == 1)
+                    delete hashtable[i];
+            }
             delete[] hashpoint;
             delete[] hashtable;
             delete[] status;
@@ -1140,7 +1221,7 @@ public:
 
 class ReducedNode {
 public:
-    int vitri;
+    string* data;
     int leftlengthdata;
     int lengthdata;
     ReducedNode* ptrleft;
@@ -1158,7 +1239,7 @@ public:
         if (staticid > 10000000) throw overflow_error("Id is overflow!");
         id = staticid;
         AVLtree->root->id = staticid;
-        vitri = 0;
+        data = NULL;
     }
 
     ReducedNode(string s) {
@@ -1171,7 +1252,7 @@ public:
         if (staticid > 10000000) throw overflow_error("Id is overflow!");
         id = staticid;
         AVLtree->root->id = staticid;
-        vitri = 0;
+        data = NULL;
     }
     ~ReducedNode() {
         xoahet--;
@@ -1193,18 +1274,19 @@ public:
         lengthstr = 0;
     }
     ReducedConcatStringTree(const char* s, LitStringHash* litStringHash) {
+        if (staticid >= 10000000) throw overflow_error("Id is overflow!");
         this->litStringHash = litStringHash;
         string temp = s;
-        int vitritemp = litStringHash->addressstring(temp);
+        string* vitridata = litStringHash->addressstring(temp);
         root = new ReducedNode(temp);
-        root->vitri= vitritemp;
+        root->data= vitridata;
         lengthstr = temp.length();
     };
     int length() const {
         return lengthstr;
     };
     char getrecur(int index, ReducedNode* cur) const{
-        if (cur->chuadata == 1) return litStringHash->hashtable[cur->vitri][index];
+        if (cur->chuadata == 1) return cur->data[0][index];
         if (index < cur->leftlengthdata) return getrecur(index, cur->ptrleft);
         return getrecur(index - cur->leftlengthdata, cur->ptrright);
     }
@@ -1214,9 +1296,9 @@ public:
     };
     int indexOfrecur(char c, ReducedNode* cur) const {
         if (cur->chuadata == 1) {
-            for (int i = 0; i < litStringHash->hashtable[cur->vitri].length(); i++)
+            for (int i = 0; i < cur->data[0].length(); i++)
             {
-                if (litStringHash->hashtable[cur->vitri][i] == c) return i;
+                if (cur->data[0][i] == c) return i;
             }
             return -1;
         }
@@ -1250,7 +1332,7 @@ public:
         res += tmp2;
         res += ",";
         if (cur->chuadata == 0) res += "<NULL>)";
-        else res += '"' + litStringHash->hashtable[cur->vitri] + '"' + ")";
+        else res += '"' + cur->data[0] + '"' + ")";
         if (cur->ptrleft != NULL) res += toStringPreOrderrecur(cur->ptrleft);
         if (cur->ptrright != NULL)res += toStringPreOrderrecur(cur->ptrright);
         return res;
@@ -1267,7 +1349,7 @@ public:
         string res = "";
         if (cur->ptrleft != NULL) res += toStringrecur(cur->ptrleft);
         if (cur->ptrright != NULL) res += toStringrecur(cur->ptrright);
-        if (cur->chuadata == 1) res += litStringHash->hashtable[cur->vitri];
+        if (cur->chuadata == 1) res += *(cur->data);
         return res;
     };
     string toString()const {
@@ -1280,6 +1362,7 @@ public:
         return res;
     };
     ReducedConcatStringTree concat(const ReducedConcatStringTree& otherS)const {
+        if (staticid >= 10000000) throw overflow_error("Id is overflow!");
         static ReducedConcatStringTree res; res.reset();
         res.root = new ReducedNode();
         res.lengthstr = this->lengthstr + otherS.lengthstr;
@@ -1384,8 +1467,6 @@ public:
         }
     }*/
     void checkandelete(ReducedNode* node) {
-        if (node == NULL) return;
-        node->AVLtree->delNodeAVL(node->id);
         if (node->AVLtree->size() == 0) {
             if (node->ptrleft != NULL) {
                 node->ptrleft->AVLtree->delNodeAVL(node->id);
@@ -1395,7 +1476,8 @@ public:
                 node->ptrright->AVLtree->delNodeAVL(node->id);
                 checkandelete(node->ptrright);
             }
-            litStringHash->deletestring(litStringHash->hashtable[node->vitri]);
+            if(node->chuadata==1)
+                litStringHash->deletestring(*(node->data));
             delete node;
             node = NULL;
         }
@@ -1404,6 +1486,8 @@ public:
     ~ReducedConcatStringTree() {
         if (root != NULL && xoahet != 0)
         {
+            if (root == NULL) return;
+                root->AVLtree->delNodeAVL(root->id);
             checkandelete(root);
             //if (root->AVLtree==NULL)
                 //root = NULL;
